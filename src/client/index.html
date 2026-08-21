@@ -19,6 +19,12 @@
         body {
             background-color: #18181b;
         }
+        canvas#viz{
+            width:100%;
+            height:84px;
+            display:block;
+            margin-bottom:16px;
+        }
     </style>
     <script>
         let _unused = 0; // ensures all stylesheets loaded on firefox
@@ -28,4 +34,49 @@
 <div id="app"></div>
 <script src="/src/main.ts" type="module"></script>
 </body>
+    <footer><canvas id="viz"></canvas></footer>
+    <script>
+        var canvas = document.getElementById('viz');
+  var ctx = canvas.getContext('2d');
+
+  function resizeCanvas(){
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * devicePixelRatio;
+    canvas.height = rect.height * devicePixelRatio;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function drawViz(){
+    requestAnimationFrame(drawViz);
+    var w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    var bars = 28;
+    var gap = w / bars;
+    var barWidth = gap * 0.55;
+
+    if (analyser && !audio.paused && !reduceMotion) {
+      analyser.getByteFrequencyData(dataArray);
+    }
+
+    for (var i = 0; i < bars; i++) {
+      var value = 6;
+      if (analyser && dataArray && !audio.paused && !reduceMotion) {
+        var idx = Math.floor(i * dataArray.length / bars);
+        value = Math.max(6, (dataArray[idx] / 255) * h * 0.9);
+      } else if (!audio.paused) {
+        value = h * 0.15;
+      }
+      var x = i * gap + (gap - barWidth) / 2;
+      var y = h - value;
+      ctx.fillStyle = '#E8A33D';
+      ctx.globalAlpha = 0.85;
+      ctx.fillRect(x, y, barWidth, value);
+    }
+  }
+  drawViz();
+    </script>
 </html>
